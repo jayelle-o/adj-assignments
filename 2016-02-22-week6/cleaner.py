@@ -23,6 +23,7 @@ writer.writeheader()
 # Clean and write the data to output
 for row in reader:
     row['first_name'] = row['first_name'].upper()
+
     #we are overwriting something that already exists with the clean version
     print row
     writer.writerow(row)
