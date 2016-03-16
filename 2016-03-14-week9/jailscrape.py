@@ -1,31 +1,25 @@
-import urllib2, csv 
-from BeautifulSoup import BeautifulSoup
+import urllib2, csv, mechanize
+from bs4 import BeautifulSoup
 
-# PART 1
+# Get the output file ready
+output = open('output.csv', 'w')
+writer = csv.writer(output)
 
-html = urllib2.urlopen('http://www.showmeboone.com/sheriff/jailresidents/jailresidents.asp').read()
+# Get the HTML of the page
+br = mechanize.Browser()
+br.open('https://report.boonecountymo.org/mrcjava/servlet/SH01_MP.I00290s?max_rows=500')
+html = br.response().read()
 
-# PART 2
+# Transform the HTML into a BeautifulSoup object
+soup = BeautifulSoup(html, "html.parser")
 
-soup = BeautifulSoup(html)
-results_table = soup.find('table', attrs={'class': 'resultsTable'})
+# Find the main table using both the "align" and "class" attributes
+main_table = soup.find('table',
+    {'align': 'center',
+    'class': ['collapse', 'shadow', 'BCSDTable']
+})
 
-# PART 3
-
-output = []
-
-for tr in results_table.findAll('tr'):
-    
-    output_row = []
-
-    for td in tr.findAll('td'):
-        data = td.text.replace('&nbsp;', '')
-        output_row.append(data)
-
-    output.append(output_row)
-
-# PART 4
-
-with open('inmates.csv', 'w') as csvfile:
-    my_writer = csv.writer(csvfile, delimiter='|')
-    my_writer.writerows(output)
+# Now get the data from each table row
+for row in main_table.find_all('tr'):
+    data = [cell.text for cell in row.find_all('td')]
+    writer.writerow(data)
